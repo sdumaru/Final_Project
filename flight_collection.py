@@ -1,35 +1,41 @@
-class AVLNode:
-    def __init__(self, key, flight):
-        self.key = key  # The flight number (used for sorting)
-        self.flight = flight  # The flight object associated with this node
-        self.left = None  # Left child
-        self.right = None  # Right child
-        self.height = 1  # Height of this node for balancing purposes
+""" Balanced binary search tree to maintain flight records and help in sorting """
 
-class AVLTree:
+from flights import Flight
+
+class AVLNode:
+    """ Individual flight node which will be inserted in the tree """
+    def __init__(self, key, flight):
+        self.key = key                      # The key used for sorting (can be flight_id, price, departure_time)
+        self.flight = flight                # The flight object associated with this node
+        self.left = None                    # Left child
+        self.right = None                   # Right child
+        self.height = 1                     # Height of this node for balancing purposes
+
+class FlightAVLTree:
+    """ Collection of flights that will be used for sorting """
     def __init__(self):
         self.root = None
 
-    # Helper function to get the height of a node
     def get_height(self, node):
+        """ Helper function to get the height of a node """
         if not node:
             return 0
         return node.height
 
-    # Helper function to get the balance factor of a node
     def get_balance(self, node):
+        """ Helper function to get the balance factor of a node """
         if not node:
             return 0
         return self.get_height(node.left) - self.get_height(node.right)
 
-    # Right rotate the subtree rooted with node y
     def right_rotate(self, y):
+        """ Right rotate the subtree rooted with node y """
         x = y.left
-        T2 = x.right
+        temp = x.right
 
         # Perform rotation
         x.right = y
-        y.left = T2
+        y.left = temp
 
         # Update heights
         y.height = max(self.get_height(y.left), self.get_height(y.right)) + 1
@@ -38,14 +44,14 @@ class AVLTree:
         # Return the new root
         return x
 
-    # Left rotate the subtree rooted with node x
     def left_rotate(self, x):
+        """ Left rotate the subtree rooted with node x """
         y = x.right
-        T2 = y.left
+        temp = y.left
 
         # Perform rotation
         y.left = x
-        x.right = T2
+        x.right = temp
 
         # Update heights
         x.height = max(self.get_height(x.left), self.get_height(x.right)) + 1
@@ -54,9 +60,9 @@ class AVLTree:
         # Return the new root
         return y
 
-    # Insert a flight into the AVL tree and return the new root of the subtree
     def insert(self, root, key, flight):
-        # 1. Perform standard BST insert
+        """ Insert a flight into the AVL tree and return the new root of the subtree """
+        # Perform standard BST insert
         if not root:
             return AVLNode(key, flight)
         elif key < root.key:
@@ -64,14 +70,13 @@ class AVLTree:
         else:
             root.right = self.insert(root.right, key, flight)
 
-        # 2. Update the height of the ancestor node
+        # Update the height of the ancestor node
         root.height = max(self.get_height(root.left), self.get_height(root.right)) + 1
 
-        # 3. Get the balance factor to check if this node became unbalanced
+        # Get the balance factor to check if this node became unbalanced
         balance = self.get_balance(root)
 
-        # 4. If the node is unbalanced, perform rotations
-
+        # If the node is unbalanced, perform rotations
         # Left Left Case
         if balance > 1 and key < root.left.key:
             return self.right_rotate(root)
@@ -92,15 +97,15 @@ class AVLTree:
 
         return root
 
-    # Find the node with the smallest value (used for deletion)
     def find_min(self, root):
+        """ Find the node with the smallest value (used for deletion) """
         if root is None or root.left is None:
             return root
         return self.find_min(root.left)
 
-    # Delete a flight from the AVL tree
     def delete(self, root, key):
-        # 1. Perform standard BST delete
+        """ Delete a flight from the AVL tree """
+        # Perform standard BST delete
         if not root:
             return root
         elif key < root.key:
@@ -124,17 +129,17 @@ class AVLTree:
             # Delete the inorder successor
             root.right = self.delete(root.right, temp.key)
 
-        # 2. If the tree has only one node, return it
+        # If the tree has only one node, return it
         if not root:
             return root
 
-        # 3. Update the height of the current node
+        # Update the height of the current node
         root.height = max(self.get_height(root.left), self.get_height(root.right)) + 1
 
-        # 4. Get the balance factor of this node
+        # Get the balance factor of this node
         balance = self.get_balance(root)
 
-        # 5. If the node is unbalanced, perform rotations
+        # If the node is unbalanced, perform rotations
 
         # Left Left Case
         if balance > 1 and self.get_balance(root.left) >= 0:
@@ -156,9 +161,30 @@ class AVLTree:
 
         return root
 
-    # In-order traversal of the AVL Tree (sorted flight numbers)
     def in_order_traversal(self, root):
+        """ In-order traversal of the AVL Tree (sorted flight based on key) """
         if root:
             self.in_order_traversal(root.left)
-            print(f"Flight {root.flight.flight_number}: {root.flight.origin} -> {root.flight.destination}, Departure: {root.flight.departure_time}")
+            print(f"Flight {root.flight.flight_no}: {root.flight.origin} -> {root.flight.destination}, Departure: {root.flight.departure_time}, Price: {root.flight.price}")
             self.in_order_traversal(root.right)
+
+# Example Usage
+flight_tree = FlightAVLTree()
+
+# Create flights with flight number, departure time, origin, destination, price, and seat_number
+flights_list = [
+    Flight(123, "08:00", "New York", "Dallas", 600, 20),
+    Flight(456, "09:30", "Los Angeles", "New York", 1000, 16),
+    Flight(789, "11:15", "Chicago", "Las Vegas", 300, 30),
+    Flight(101, "12:45", "Miami", "San Diago", 450, 20),
+    Flight(654, "14:30", "Houston", "Boston", 650, 10),
+    Flight(321, "17:00", "San Francisco", "Chicago", 300, 15)
+]
+
+# Insert flights into the AVL tree
+for fli in flights_list:
+    flight_tree.root = flight_tree.insert(flight_tree.root, fli.departure_time, fli)
+
+# Show the flights in sorted order by flight number
+print("Flights in Sorted Order by Flight Number:")
+flight_tree.in_order_traversal(flight_tree.root)

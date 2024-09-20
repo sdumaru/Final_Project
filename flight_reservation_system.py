@@ -11,7 +11,6 @@ class BookingDetail:
         self.seat_no = seat_no
 
 class FlightReservationSystem:
-    
     # Hash Table for flight bookings
     # bookings[booking_id] = booking_details
     def __init__(self):
