@@ -68,36 +68,3 @@ class MaxHeapPriorityQueue:
         """ Return if the waitlist is empty or not """
         return len(self.heap) == 0
 
-# flight_waitlist = MaxHeapPriorityQueue()
-
-# flight_waitlist.insert(Passenger("Sujan", 1400, 5))
-# flight_waitlist.insert(Passenger("Zach", 1400, 3))
-# flight_waitlist.insert(Passenger("Akku", 1400, 2))
-# flight_waitlist.insert(Passenger("Kamal", 1400, 4))
-# flight_waitlist.insert(Passenger("Max", 1400, 1))
-# flight_waitlist.insert(Passenger("Caleb", 1400, 4))
-
-# # Check queue state
-# print("Queue before extracting lowest element:")
-# for i in flight_waitlist.heap:
-#     print("Task ID: ", i.name, " Priority: ", i.priority)
-
-# # Extract heap_minimum_element
-# print("Extracted passenger:", flight_waitlist.extract_max().name)   # Should extract Sujan
-# print("Extracted passenger:", flight_waitlist.extract_max().name)   # Should extract Kamal
-# print("Extracted passenger:", flight_waitlist.extract_max().name)   # Should extract Caleb
-
-# # Check queue state
-# print("Queue after extraction:")
-# for i in flight_waitlist.heap:
-#     print("Task ID: ", i.name, " Priority: ", i.priority)
-
-# # Check if empty
-# print("Is waitlist empty?", flight_waitlist.is_empty())
-
-# print("Extracted passenger:", flight_waitlist.extract_max().name)   # Should extract Zach
-# print("Extracted passenger:", flight_waitlist.extract_max().name)   # Should extract Akku
-# print("Extracted passenger:", flight_waitlist.extract_max().name)   # Should extract Max
-
-# # Check if empty
-# print("Is waitlist empty?", flight_waitlist.is_empty())

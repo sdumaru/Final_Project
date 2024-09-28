@@ -1,26 +1,38 @@
 """ Balanced binary search tree to maintain flight records and help in sorting """
 
+import random
+import time
 from flights import Flight
 
 class AVLNode:
-    """ Individual flight node which will be inserted in the tree """
+    """ Individual flight node which will be inserted in the AVL tree """
     def __init__(self, key, flight):
-        self.key = key                      # The key used for sorting (can be flight_id, price, departure_time)
-        self.flight = flight                # The flight object associated with this node
+        self.key = key                      # Key used for sorting (e.g., flight_id, price, departure_time)
+        self.flight = flight                # Flight object associated with this node
         self.left = None                    # Left child
         self.right = None                   # Right child
         self.height = 1                     # Height of this node for balancing purposes
+        self.size = 1                       # Size of the subtree rooted at this node
 
 class FlightAVLTree:
-    """ Collection of flights that will be used for sorting """
-    def __init__(self):
+    """ Collection of flights that will be used for sorting and retrieval """
+    def __init__(self, rebalance_threshold=2):
         self.root = None
+        self.rebalance_threshold = rebalance_threshold  # Set a threshold for lazy rebalancing
 
     def get_height(self, node):
         """ Helper function to get the height of a node """
-        if not node:
-            return 0
-        return node.height
+        return 0 if not node else node.height
+
+    def get_size(self, node):
+        """ Helper function to get the size of a subtree rooted at the node """
+        return 0 if not node else node.size
+
+    def update_node_attributes(self, node):
+        """ Updates the height and size attributes of the node """
+        if node:
+            node.height = max(self.get_height(node.left), self.get_height(node.right)) + 1
+            node.size = self.get_size(node.left) + self.get_size(node.right) + 1
 
     def get_balance(self, node):
         """ Helper function to get the balance factor of a node """
@@ -37,9 +49,9 @@ class FlightAVLTree:
         x.right = y
         y.left = temp
 
-        # Update heights
-        y.height = max(self.get_height(y.left), self.get_height(y.right)) + 1
-        x.height = max(self.get_height(x.left), self.get_height(x.right)) + 1
+        # Update heights and sizes
+        self.update_node_attributes(y)
+        self.update_node_attributes(x)
 
         # Return the new root
         return x
@@ -53,9 +65,9 @@ class FlightAVLTree:
         y.left = x
         x.right = temp
 
-        # Update heights
-        x.height = max(self.get_height(x.left), self.get_height(x.right)) + 1
-        y.height = max(self.get_height(y.left), self.get_height(y.right)) + 1
+        # Update heights and sizes
+        self.update_node_attributes(x)
+        self.update_node_attributes(y)
 
         # Return the new root
         return y
@@ -70,28 +82,21 @@ class FlightAVLTree:
         else:
             root.right = self.insert(root.right, key, flight)
 
-        # Update the height of the ancestor node
-        root.height = max(self.get_height(root.left), self.get_height(root.right)) + 1
+        # Update the node's attributes (height and size)
+        self.update_node_attributes(root)
 
         # Get the balance factor to check if this node became unbalanced
         balance = self.get_balance(root)
 
-        # If the node is unbalanced, perform rotations
-        # Left Left Case
-        if balance > 1 and key < root.left.key:
+        # If the node is unbalanced and the imbalance exceeds the lazy threshold, perform rotations
+        if balance > self.rebalance_threshold and key < root.left.key:          # Left Left Case
             return self.right_rotate(root)
-
-        # Right Right Case
-        if balance < -1 and key > root.right.key:
+        if balance < -self.rebalance_threshold and key > root.right.key:        # Right Right Case
             return self.left_rotate(root)
-
-        # Left Right Case
-        if balance > 1 and key > root.left.key:
+        if balance > self.rebalance_threshold and key > root.left.key:          # Left Right Case
             root.left = self.left_rotate(root.left)
             return self.right_rotate(root)
-
-        # Right Left Case
-        if balance < -1 and key < root.right.key:
+        if balance < -self.rebalance_threshold and key < root.right.key:        # Right Left Case
             root.right = self.right_rotate(root.right)
             return self.left_rotate(root)
 
@@ -133,29 +138,29 @@ class FlightAVLTree:
         if not root:
             return root
 
-        # Update the height of the current node
-        root.height = max(self.get_height(root.left), self.get_height(root.right)) + 1
+        # Update the node's attributes (height and size)
+        self.update_node_attributes(root)
 
         # Get the balance factor of this node
         balance = self.get_balance(root)
 
-        # If the node is unbalanced, perform rotations
+        # If the node is unbalanced and the imbalance exceeds the lazy threshold, perform rotations
 
         # Left Left Case
-        if balance > 1 and self.get_balance(root.left) >= 0:
+        if balance > self.rebalance_threshold and self.get_balance(root.left) >= 0:
             return self.right_rotate(root)
 
         # Left Right Case
-        if balance > 1 and self.get_balance(root.left) < 0:
+        if balance > self.rebalance_threshold and self.get_balance(root.left) < 0:
             root.left = self.left_rotate(root.left)
             return self.right_rotate(root)
 
         # Right Right Case
-        if balance < -1 and self.get_balance(root.right) <= 0:
+        if balance < -self.rebalance_threshold and self.get_balance(root.right) <= 0:
             return self.left_rotate(root)
 
         # Right Left Case
-        if balance < -1 and self.get_balance(root.right) > 0:
+        if balance < -self.rebalance_threshold and self.get_balance(root.right) > 0:
             root.right = self.right_rotate(root.right)
             return self.left_rotate(root)
 
@@ -171,20 +176,26 @@ class FlightAVLTree:
 # Example Usage
 flight_tree = FlightAVLTree()
 
+# Measure execution time for inserting the 500 flights
+start_time = time.perf_counter()
+
 # Create flights with flight number, departure time, origin, destination, price, and seat_number
-flights_list = [
-    Flight(123, "08:00", "New York", "Dallas", 600, 20),
-    Flight(456, "09:30", "Los Angeles", "New York", 1000, 16),
-    Flight(789, "11:15", "Chicago", "Las Vegas", 300, 30),
-    Flight(101, "12:45", "Miami", "San Diago", 450, 20),
-    Flight(654, "14:30", "Houston", "Boston", 650, 10),
-    Flight(321, "17:00", "San Francisco", "Chicago", 300, 15)
-]
+flights_list = []
+origins = ["New York", "Los Angeles", "Miami", "Houston", "San Francisco", "Austin", "Springfield", "Bloomington"]
+destinations = ["Dallas", "New York", "Las Vegas", "San Diego", "Boston", "Chicago", "Peoria", "Providence"]
+for i in range(1, 501):
+    flight_no = 1000 + i  # Ensure unique flight numbers
+    departure_time = f"{random.randint(0, 23):02}:{random.randint(0, 59):02}"  # Random time
+    origin = random.choice(origins)
+    destination = random.choice(destinations)
+    price = random.randint(100, 1000)               # Random price
+    seat_number = random.randint(1, 50)             # Random seat number
+    flights_list.append(Flight(flight_no, departure_time, origin, destination, price, seat_number))
 
 # Insert flights into the AVL tree
 for fli in flights_list:
-    flight_tree.root = flight_tree.insert(flight_tree.root, fli.departure_time, fli)
+    flight_tree.root = flight_tree.insert(flight_tree.root, fli.flight_no, fli)
 
-# Show the flights in sorted order by flight number
-print("Flights in Sorted Order by Flight Number:")
-flight_tree.in_order_traversal(flight_tree.root)
+end_time = time.perf_counter()
+execution_time = end_time - start_time
+print(f"Execution time for inserting flights: {execution_time} seconds")
